@@ -23,16 +23,16 @@ void transactions_table::create()
 {
     ilog("about to create transactions table");
     *m_session << "create table transactions("
-                  "sequence_num UNSIGNED INT NOT NULL,"
+                  "sequence_num INT UNSIGNED NOT NULL,"
                   "transaction_id TEXT,"
                   "block_id TEXT,"
-                  "ref_block_num UNSIGNED INT NOT NULL,"
-                  "ref_block_prefix UNSIGNED INT NOT NULL,"
-                  "status UNSIGNED INT,"
-                  "expiration UNSIGNED BIGINT,"
+                  "ref_block_num INT UNSIGNED NOT NULL,"
+                  "ref_block_prefix INT UNSIGNED NOT NULL,"
+                  "status INT UNSIGNED,"
+                  "expiration BIGINT UNSIGNED,"
                   "pending BIT,"
-                  "created_at UNSIGNED BIGINT,"
-                  "updated_at UNSIGNED BIGINT)";
+                  "created_at BIGINT UNSIGNED,"
+                  "updated_at BIGINT UNSIGNED)";
 }
 
 void transactions_table::insert(const chain::block_state_ptr &b)
@@ -72,7 +72,7 @@ void transactions_table::insert(const chain::block_state_ptr &b)
             const auto expiration = std::chrono::milliseconds{std::chrono::seconds{tx->trx.expiration.sec_since_epoch()}}.count(); 
 
             const int pending = 0; // FIXME:
-            ilog("insert transaction id ${i} ...", ("i", transaction_id));
+            // ilog("insert transaction id ${i} ...", ("i", transaction_id));
             // TODO
             *m_session << "insert into transactions(sequence_num, transaction_id, "
                     "block_id, ref_block_num, "

@@ -21,16 +21,16 @@ void blocks_table::create()
 {
     ilog("about to create blocks table");
     *m_session << "create table blocks("
-                  "block_num UNSIGNED INT NOT NULL,"
+                  "block_num INT UNSIGNED NOT NULL,"
                   "block_id TEXT,"
                   "prev_block_id TEXT,"
-                  "timestamp UNSIGNED BIGINT,"
+                  "timestamp BIGINT UNSIGNED,"
                   "transaction_merkle_root TEXT,"
-                  "transactions UNSIGNED INT,"
+                  "transactions INT UNSIGNED,"
                   "producer_account_id TEXT,"
                   "pending BIT,"
-                  "created_at UNSIGNED BIGINT,"
-                  "updated_at UNSIGNED BIGINT)";
+                  "created_at BIGINT UNSIGNED,"
+                  "updated_at BIGINT UNSIGNED)";
 }
 
 void blocks_table::insert(const chain::block_state_ptr &b)
@@ -38,8 +38,8 @@ void blocks_table::insert(const chain::block_state_ptr &b)
     try {
         const chain::signed_block_ptr &block = b->block;
         const auto block_id = block->id().str();
-        
-        ilog("insert block id ${i} ...", ("i", block_id));
+
+        // ilog("insert block id ${i} ...", ("i", block_id));
 
         const auto prev_block_id = block->previous.str();
         const auto block_num = static_cast<int32_t>(block->block_num());
