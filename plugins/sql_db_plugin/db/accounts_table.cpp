@@ -22,6 +22,7 @@ void accounts_table::drop()
 
 void accounts_table::create()
 {
+    ilog("about to create accounts table");
     *m_session << "create table accounts("
                   "name TEXT,"
                   "eos_balance REAL,"

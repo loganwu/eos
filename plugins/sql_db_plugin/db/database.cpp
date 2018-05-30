@@ -16,8 +16,15 @@ void database::wipe()
     std::unique_lock<std::mutex> lock(m_mux);
 
     m_accounts_table->drop();
+    m_blocks_table->drop();
 
     m_accounts_table->create();
+    m_blocks_table->create();
+}
+
+void database::insert(const chain::block_state_ptr &b)
+{
+    m_blocks_table->insert(b);
 }
 
 } // namespace

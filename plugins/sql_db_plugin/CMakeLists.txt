@@ -1,8 +1,14 @@
 find_package(Soci)
+#find_package(Soci COMPONENTS mysql)
 if(NOT SOCI_FOUND)
     message(STATUS "Database SQL plugin: disabled")
     return()
 endif()
+
+#if (NOT SOCI_mysql_FOUND)
+#    message(STATUS "MySQL not found!!!")
+#    return()
+#endif()
 
 message(STATUS "Database SQL plugin: enabled")
 

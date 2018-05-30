@@ -19,6 +19,7 @@ public:
 
     void wipe();
 
+    void insert(const chain::block_state_ptr& b);
 private:
     mutable std::mutex m_mux;
     std::shared_ptr<soci::session> m_session;
