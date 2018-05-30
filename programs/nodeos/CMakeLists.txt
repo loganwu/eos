@@ -63,10 +63,10 @@ target_link_libraries( nodeos
   target_link_libraries( nodeos PRIVATE -Wl,${whole_archive_flag} sql_db_plugin -Wl,${no_whole_archive_flag} )
 #endif()
 
-if(BUILD_MONGO_DB_PLUGIN)
-  target_link_libraries( nodeos
-    PRIVATE -Wl,${whole_archive_flag} mongo_db_plugin -Wl,${no_whole_archive_flag} )
-endif()
+#if(BUILD_MONGO_DB_PLUGIN)
+# target_link_libraries( nodeos
+#    PRIVATE -Wl,${whole_archive_flag} mongo_db_plugin -Wl,${no_whole_archive_flag} )
+#endif()
 
 install( TARGETS
    nodeos
