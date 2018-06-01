@@ -17,7 +17,7 @@ namespace eosio {
 class applied_transaction_storage : public consumer_core<chain::transaction_trace_ptr>
 {
 public:
-    applied_transaction_storage(std::shared_ptr<backend> db);
+    applied_transaction_storage(std::shared_ptr<backend> be);
 
     void consume(const std::vector<chain::transaction_trace_ptr>& traces) override;
 

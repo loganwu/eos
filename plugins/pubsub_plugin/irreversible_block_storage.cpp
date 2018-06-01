@@ -11,15 +11,10 @@ irreversible_block_storage::irreversible_block_storage(std::shared_ptr<backend> 
 
 void irreversible_block_storage::consume(const std::vector<chain::block_state_ptr>& blocks)
 {
-    for (const auto& block : blocks)
-    {
-        idump((fc::json::to_pretty_string(block)));
-        // ilog(block->id.str());
-
-        //  TODO parse the block and ..
-        //  TODO m_be->act
-        // m_be->insert(block);
-        
+    for (const auto& block : blocks) {
+        const std::string &block_str = fc::json::to_pretty_string(block);
+        // idump((block_str));
+        m_be->publish(block_str);
     }
 }
 
