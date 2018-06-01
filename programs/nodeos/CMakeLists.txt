@@ -60,7 +60,11 @@ target_link_libraries( nodeos
         PRIVATE eosio_chain fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
 
 #if(TARGET sql_db_plugin)
-  target_link_libraries( nodeos PRIVATE -Wl,${whole_archive_flag} sql_db_plugin -Wl,${no_whole_archive_flag} )
+#  target_link_libraries( nodeos PRIVATE -Wl,${whole_archive_flag} sql_db_plugin -Wl,${no_whole_archive_flag} )
+#endif()
+
+#if(TARGET pubsub_plugin)
+  target_link_libraries( nodeos PRIVATE -Wl,${whole_archive_flag} pubsub_plugin -Wl,${no_whole_archive_flag} )
 #endif()
 
 #if(BUILD_MONGO_DB_PLUGIN)
