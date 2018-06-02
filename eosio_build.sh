@@ -48,7 +48,7 @@
 
 	ARCH=$( uname )
 	BUILD_DIR="${PWD}/build"
-	CMAKE_BUILD_TYPE=Debug
+	CMAKE_BUILD_TYPE=Release
 	DISK_MIN=20
 	DOXYGEN=false
 	ENABLE_COVERAGE_TESTING=false

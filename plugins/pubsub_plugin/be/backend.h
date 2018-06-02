@@ -20,6 +20,7 @@ public:
     void publish(const std::string &msg);
 private:
     mutable std::mutex m_mux;
+    unsigned long long m_count;
     std::string m_uri, m_topic, m_cid, m_format;
     std::shared_ptr<libkafka_asio::Connection> m_connection;
     std::shared_ptr<boost::asio::io_service> m_ios;
