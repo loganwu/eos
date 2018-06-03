@@ -101,7 +101,7 @@ void backend::publish(const std::string &msg) {
 
     m_ios->run();
     m_ios->reset();
-    ilog("Exit message queue!");
+    ilog("Exit kafka io message queue!");
 }
 
 } // namespace

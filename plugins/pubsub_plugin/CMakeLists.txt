@@ -5,6 +5,7 @@ add_library(pubsub_plugin
     be/backend.cpp
     pubsub_plugin.cpp
     irreversible_block_storage.cpp
+    applied_action.cpp
     applied_transaction_storage.cpp
     block_storage.cpp
     )

@@ -10,7 +10,9 @@
 #include "consumer_core.h"
 #include "irreversible_block_storage.h"
 #include "applied_transaction_storage.h"
+#include "applied_action.h"
 #include "block_storage.h"
+#include <fc/io/json.hpp>
 
 namespace {
 const char* PUBSUB_URI_OPTION = "pubsub-uri";
@@ -27,10 +29,14 @@ namespace eosio {
 
 static appbase::abstract_plugin& _pubsub_plugin = app().register_plugin<pubsub_plugin>();
 
+
+using namespace pubsub_message;
+
 pubsub_plugin::pubsub_plugin():
     m_block_consumer(std::make_unique<block_storage>())
 {
-
+    m_chain_plug = app().find_plugin<chain_plugin>();
+    FC_ASSERT(m_chain_plug);
 }
 
 void pubsub_plugin::set_program_options(options_description& cli, options_description& cfg)
@@ -92,16 +98,38 @@ void pubsub_plugin::plugin_initialize(const variables_map& options)
         be->wipe();
     }
 
-    chain_plugin* chain_plug = app().find_plugin<chain_plugin>();
-    FC_ASSERT(chain_plug);
-    auto& chain = chain_plug->chain();
+    auto& chain = m_chain_plug->chain();
 
     m_irreversible_block_consumer = std::make_unique<consumer<chain::block_state_ptr>>(std::make_unique<irreversible_block_storage>(be));
-    m_applied_transaction_consumer = std::make_unique<consumer<chain::transaction_trace_ptr>>(std::make_unique<applied_transaction_storage>(be));
+    // m_applied_transaction_consumer = std::make_unique<consumer<chain::transaction_trace_ptr>>(std::make_unique<applied_transaction_storage>(be));
+    m_applied_action_consumer = std::make_unique<consumer<pubsub_message::actions_result_ptr>>(std::make_unique<applied_action>(be));
 
    // chain.accepted_block.connect([=](const chain::block_state_ptr& b) {m_block_consumer.push(b);});
     m_irreversible_block_connection.emplace(chain.irreversible_block.connect([=](const chain::block_state_ptr& b) {m_irreversible_block_consumer->push(b);}));
-    m_applied_transaction_connection.emplace(chain.applied_transaction.connect([=](const chain::transaction_trace_ptr& b) {m_applied_transaction_consumer->push(b);}));
+    m_applied_transaction_connection.emplace(chain.applied_transaction.connect([=](const chain::transaction_trace_ptr& t) {
+       on_message(t);
+    }));
+}
+
+void pubsub_plugin::on_message(const chain::transaction_trace_ptr& trace) {
+    auto& chain = m_chain_plug->chain();
+    actions_result_ptr result = std::make_shared<actions_result>();
+    result->last_irreversible_block = chain.last_irreversible_block_num();
+    
+    for( const auto& at : trace->action_traces ) {
+        int32_t account_action_seq = 0; // TODO: 
+        result->actions.emplace_back( ordered_action_result{
+                                 at.receipt.global_sequence,
+                                 account_action_seq,
+                                 chain.pending_block_state()->block_num, 
+                                 chain.pending_block_time(),
+                                 chain.to_variant_with_abi(at)
+                                 });
+
+    }
+
+    // idump((fc::json::to_pretty_string(*result))); 
+    m_applied_action_consumer->push(result);
 }
 
 void pubsub_plugin::plugin_startup()
@@ -117,3 +145,4 @@ void pubsub_plugin::plugin_shutdown()
 }
 
 } // namespace eosio
+
