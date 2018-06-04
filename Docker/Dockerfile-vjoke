@@ -2,6 +2,16 @@ FROM eosio/builder as builder
 ARG branch=master
 ARG symbol=SYS
 
+# Added for libkafka_asio
+RUN git clone --depth 1 -b 1.1.7 https://github.com/google/snappy.git \
+    && cd snappy \ 
+    && mkdir build \
+    && cd build \
+    && cmake ../ \
+    && make install \
+    && cd ../../ && rm -rf snappy 
+
+
 RUN git clone -b $branch https://github.com/vjoke/eos.git --recursive \
     && cd eos && echo "$branch:$(git rev-parse HEAD)" > /etc/eosio-version \
     && cmake -H. -B"/tmp/build" -GNinja -DCMAKE_BUILD_TYPE=Release -DWASM_ROOT=/opt/wasm -DCMAKE_CXX_COMPILER=clang++ \

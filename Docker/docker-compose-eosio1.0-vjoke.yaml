@@ -3,7 +3,7 @@ version: "3"
 services:
   nodeosd:
     image: vjoke/eos:v1.0.1
-    command: /opt/eosio/bin/nodeosd.sh --data-dir /opt/eosio/bin/data-dir -e
+    command: /opt/eosio/bin/nodeosd.sh --data-dir /opt/eosio/bin/data-dir -e -p eosio --plugin eosio::chain_api_plugin --plugin eosio::pubsub_plugin --pubsub-uri "localhost:9092" --pubsub-topic "EosWallet" --pubsub-cid "eosnode" --pubsub-format "json" --max-transaction-time 200000 --max-irreversible-block-age=100000000
     hostname: nodeosd
     ports:
       - 8888:8888
@@ -13,17 +13,17 @@ services:
     volumes:
       - nodeos-data-volume:/opt/eosio/bin/data-dir
 
-  keosd:
-    image: eosio/eos:v1.0.1
-    command: /opt/eosio/bin/keosd --wallet-dir /opt/eosio/bin/data-dir --http-server-address=127.0.0.1:8900
-    hostname: keosd
-    links:
-      - nodeosd
-    volumes:
-      - keosd-data-volume:/opt/eosio/bin/data-dir
+  # keosd:
+  #   image: vjoke/eos:v1.0.1
+  #   command: /opt/eosio/bin/keosd --wallet-dir /opt/eosio/bin/data-dir --http-server-address=127.0.0.1:8900
+  #   hostname: keosd
+  #   links:
+  #     - nodeosd
+  #   volumes:
+  #     - keosd-data-volume:/opt/eosio/bin/data-dir
 
 volumes:
  nodeos-data-volume:
-   external: true
- keosd-data-volume:
-   external: true
+   external: true 
+#  keosd-data-volume:
+#    external: true
