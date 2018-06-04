@@ -3,7 +3,6 @@
 
 #include <memory>
 #include <mutex>
-#include <soci/soci.h>
 
 #include <libkafka_asio/libkafka_asio.h>
 #include <fc/log/logger.hpp>
