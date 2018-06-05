@@ -38,6 +38,26 @@ namespace eosio {
  */
 
 namespace pubsub_message {
+    struct transaction_result {
+        std::string                 trx_id;
+        int                         status;
+        long long                   expiration;  
+    };
+
+    struct block_result {
+        uint64_t                    block_num;
+        std::string                 block_id;
+        std::string                 prev_block_id;
+        fc::variant                 timestamp;
+        std::string                 transaction_merkle_root;
+        uint32_t                    transaction_count;
+        std::string                 producer;
+
+        vector<transaction_result>  transactions;
+    };
+
+    using block_result_ptr = std::shared_ptr<block_result>;
+    
     struct ordered_action_result {
          uint64_t                     global_action_seq = 0;
          int32_t                      account_action_seq = 0;
@@ -85,5 +105,8 @@ private:
 
 }
 
+
+FC_REFLECT( eosio::pubsub_message::transaction_result, (trx_id)(status)(expiration) )
+FC_REFLECT( eosio::pubsub_message::block_result, (block_id)(prev_block_id)(timestamp)(transaction_merkle_root)(transaction_count)(producer)(transactions) )
 FC_REFLECT( eosio::pubsub_message::actions_result, (actions)(last_irreversible_block)(time_limit_exceeded_error) )
 FC_REFLECT( eosio::pubsub_message::ordered_action_result, (global_action_seq)(account_action_seq)(block_num)(block_time)(action_trace) )

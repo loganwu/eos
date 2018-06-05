@@ -23,6 +23,8 @@ public:
 
 private:
     std::shared_ptr<backend> m_be;
+    void on_block(const chain::block_state_ptr& block); 
+
 };
 
 } // namespace
