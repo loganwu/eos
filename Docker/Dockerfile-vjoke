@@ -3,6 +3,7 @@ ARG branch=master
 ARG symbol=SYS
 
 # Added for libkafka_asio
+
 RUN git clone --depth 1 -b 1.1.7 https://github.com/google/snappy.git \
     && cd snappy \ 
     && mkdir build \
