@@ -122,12 +122,13 @@ namespace eosio {
    }
 
    struct filter_entry {
+      name contract;
       name receiver;
       name action;
       name actor;
 
-      std::tuple<name, name, name> key() const {
-         return std::make_tuple(receiver, action, actor);
+      std::tuple<name, name, name, name> key() const {
+         return std::make_tuple(contract, receiver, action, actor);
       }
 
       friend bool operator<( const filter_entry& a, const filter_entry& b ) {
@@ -145,11 +146,26 @@ namespace eosio {
          bool filter( const action_trace& act ) {
             if( bypass_filter )
                return true;
-            if( filter_on.find({ act.receipt.receiver, act.act.name, 0 }) != filter_on.end() )
+            
+            //matching filter-on option in the format receiver:action:actor
+            if( filter_on.find({ 0, act.receipt.receiver, act.act.name, 0 }) != filter_on.end() )
                return true;
             for( const auto& a : act.act.authorization )
-               if( filter_on.find({ act.receipt.receiver, act.act.name, a.actor }) != filter_on.end() )
+               if( filter_on.find({ 0, act.receipt.receiver, act.act.name, a.actor }) != filter_on.end() )
                   return true;
+
+            //matching filter-on option in the format contract:action:actor:receiver
+            if( filter_on.find({ act.act.account, 0, act.act.name, 0 }) != filter_on.end() )
+               return true;
+            if( filter_on.find({ act.act.account, act.receipt.receiver, act.act.name, 0 }) != filter_on.end() )
+               return true;
+            for( const auto& a : act.act.authorization ) {
+               if( filter_on.find({ act.act.account, 0, act.act.name, a.actor }) != filter_on.end() )
+                  return true;
+               if( filter_on.find({ act.act.account, act.receipt.receiver, act.act.name, a.actor }) != filter_on.end() )
+                  return true;
+            }
+
             return false;
          }
 
@@ -159,8 +175,12 @@ namespace eosio {
             result.insert( act.receipt.receiver );
             for( const auto& a : act.act.authorization )
                if( bypass_filter ||
-                   filter_on.find({ act.receipt.receiver, act.act.name, 0}) != filter_on.end() ||
-                   filter_on.find({ act.receipt.receiver, act.act.name, a.actor }) != filter_on.end() )
+                   filter_on.find({ 0, act.receipt.receiver, act.act.name, 0}) != filter_on.end() ||
+                   filter_on.find({ 0, act.receipt.receiver, act.act.name, a.actor }) != filter_on.end() ||
+                   filter_on.find({ act.act.account, 0, act.act.name, 0}) != filter_on.end() ||
+                   filter_on.find({ act.act.account, 0, act.act.name, a.actor}) != filter_on.end() ||
+                   filter_on.find({ act.act.account, act.receipt.receiver, act.act.name, 0}) != filter_on.end() ||
+                   filter_on.find({ act.act.account, act.receipt.receiver, act.act.name, a.actor}) != filter_on.end() )
                   result.insert( a.actor );
             return result;
          }
@@ -261,7 +281,8 @@ namespace eosio {
    void history_plugin::set_program_options(options_description& cli, options_description& cfg) {
       cfg.add_options()
             ("filter-on,f", bpo::value<vector<string>>()->composing(),
-             "Track actions which match receiver:action:actor. Actor may be blank to include all. Receiver and Action may not be blank.")
+             "Track actions which match receiver:action:actor. Actor may be blank to include all. Receiver and Action may not be blank."
+             " Actions can also match contract:action:actor:receiver. In this case, actor and receiver may be blank to include all. Contract and Action may not be blank.")
             ;
    }
 
@@ -277,10 +298,19 @@ namespace eosio {
             }
             std::vector<std::string> v;
             boost::split(v, s, boost::is_any_of(":"));
-            EOS_ASSERT(v.size() == 3, fc::invalid_arg_exception, "Invalid value ${s} for --filter-on", ("s",s));
-            filter_entry fe{ v[0], v[1], v[2] };
-            EOS_ASSERT(fe.receiver.value && fe.action.value, fc::invalid_arg_exception, "Invalid value ${s} for --filter-on", ("s",s));
-            my->filter_on.insert( fe );
+            EOS_ASSERT(v.size() == 3 || v.size() == 4, fc::invalid_arg_exception, "Invalid value ${s} for --filter-on", ("s",s));
+            if (v.size() == 3) {
+                //filter-on = receiver:action:actor
+                filter_entry fe{ 0, v[0], v[1], v[2] };
+                EOS_ASSERT(fe.receiver.value && fe.action.value, fc::invalid_arg_exception, "Invalid value ${s} for --filter-on", ("s",s));
+                my->filter_on.insert( fe );
+            }
+            if (v.size() == 4) {
+                //filter-on = contract:action:actor:receiver
+                filter_entry fe{ v[0], v[3], v[1], v[2] };
+                EOS_ASSERT(fe.contract.value && fe.action.value, fc::invalid_arg_exception, "Invalid value ${s} for --filter-on", ("s",s));
+                my->filter_on.insert( fe );
+            }
          }
       }
 
