@@ -107,6 +107,6 @@ private:
 
 
 FC_REFLECT( eosio::pubsub_message::transaction_result, (trx_id)(status)(expiration) )
-FC_REFLECT( eosio::pubsub_message::block_result, (block_id)(prev_block_id)(timestamp)(transaction_merkle_root)(transaction_count)(producer)(transactions) )
+FC_REFLECT( eosio::pubsub_message::block_result, (block_num)(block_id)(prev_block_id)(timestamp)(transaction_merkle_root)(transaction_count)(producer)(transactions) )
 FC_REFLECT( eosio::pubsub_message::actions_result, (actions)(last_irreversible_block)(time_limit_exceeded_error) )
 FC_REFLECT( eosio::pubsub_message::ordered_action_result, (global_action_seq)(account_action_seq)(block_num)(block_time)(action_trace) )
