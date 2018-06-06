@@ -93,7 +93,7 @@ private:
 private:
     std::unique_ptr<consumer<chain::block_state_ptr>> m_irreversible_block_consumer;
     // std::unique_ptr<consumer<chain::transaction_trace_ptr>> m_applied_transaction_consumer;
-    consumer<chain::block_state_ptr> m_block_consumer;
+    // consumer<chain::block_state_ptr> m_block_consumer;
     std::unique_ptr<consumer<pubsub_message::actions_result_ptr>> m_applied_action_consumer;
 
     fc::optional<boost::signals2::scoped_connection> m_irreversible_block_connection;

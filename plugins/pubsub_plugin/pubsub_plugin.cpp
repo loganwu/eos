@@ -32,8 +32,7 @@ static appbase::abstract_plugin& _pubsub_plugin = app().register_plugin<pubsub_p
 
 using namespace pubsub_message;
 
-pubsub_plugin::pubsub_plugin():
-    m_block_consumer(std::make_unique<block_storage>())
+pubsub_plugin::pubsub_plugin()
 {
     m_chain_plug = app().find_plugin<chain_plugin>();
     FC_ASSERT(m_chain_plug);
