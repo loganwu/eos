@@ -117,18 +117,21 @@ void pubsub_plugin::on_message(const chain::transaction_trace_ptr& trace) {
     
     for( const auto& at : trace->action_traces ) {
         int32_t account_action_seq = 0; // TODO: 
-        result->actions.emplace_back( ordered_action_result{
+        if (at.act.name != N(onblock)) {
+            result->actions.emplace_back( ordered_action_result{
                                  at.receipt.global_sequence,
                                  account_action_seq,
                                  chain.pending_block_state()->block_num, 
                                  chain.pending_block_time(),
                                  chain.to_variant_with_abi(at)
                                  });
-
+        }
     }
 
     // idump((fc::json::to_pretty_string(*result))); 
-    m_applied_action_consumer->push(result);
+    if (result->actions.size() > 0) {
+        m_applied_action_consumer->push(result);
+    }
 }
 
 void pubsub_plugin::plugin_startup()
