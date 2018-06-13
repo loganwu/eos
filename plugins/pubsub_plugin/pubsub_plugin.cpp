@@ -17,6 +17,7 @@
 namespace {
 const char* PUBSUB_URI_OPTION = "pubsub-uri";
 const char* PUBSUB_TOPIC_OPTION = "pubsub-topic";
+const char* PUBSUB_PARTITION_OPTION = "pubsub-partition";
 const char* PUBSUB_CID_OPTION = "pubsub-cid";
 const char* PUBSUB_FORMAT_OPTION = "pubsub-format";
 const char* RESYNC_OPTION = "delete-all-blocks";
@@ -49,6 +50,9 @@ void pubsub_plugin::set_program_options(options_description& cli, options_descri
             (PUBSUB_TOPIC_OPTION, bpo::value<std::string>(),
              "Pubsub topic string"
              " Default 'EosWallet' is used if not specified.")
+            (PUBSUB_PARTITION_OPTION, bpo::value<int>(),
+             "Pubsub topic partitions"
+             " Default 0 is used if not specified.")
             (PUBSUB_CID_OPTION, bpo::value<std::string>(),
              "Client ID string"
              " Default 'EosNode' is used if not specified in URI.")
@@ -62,33 +66,52 @@ void pubsub_plugin::plugin_initialize(const variables_map& options)
 {
     ilog("initialize");
 
-    std::string uri_str = options.at(PUBSUB_URI_OPTION).as<std::string>();
-    if (uri_str.empty()) {
-        wlog("db URI not specified => use 'localhost' instead.");
-        uri_str = "localhost";
+    std::string uri_str, topic_str, cid_str, format_str;
+    int topic_partition = 0;
+    
+    if (options.count(PUBSUB_URI_OPTION)) {
+        uri_str = options.at(PUBSUB_URI_OPTION).as<std::string>();
+        if (uri_str.empty()) {
+            wlog("db URI not specified => use 'localhost' instead.");
+            uri_str = "localhost";
+        }
     }
     
-    std::string topic_str = options.at(PUBSUB_TOPIC_OPTION).as<std::string>();
-    if (topic_str.empty()) {
-        wlog("topic not specified => use 'EosWallet' instead.");
-        topic_str = "EosWallet";
+    if (options.count(PUBSUB_TOPIC_OPTION)) {
+        topic_str = options.at(PUBSUB_TOPIC_OPTION).as<std::string>();
+        if (topic_str.empty()) {
+            wlog("topic not specified => use 'EosWallet' instead.");
+            topic_str = "EosWallet";
+        }
     }
 
-    std::string cid_str = options.at(PUBSUB_CID_OPTION).as<std::string>();
-    if (cid_str.empty()) {
-        wlog("cid not specified => use 'EosNode' instead.");
-        cid_str = "EosNode";
+    if (options.count(PUBSUB_PARTITION_OPTION)) {
+        topic_partition = options.at(PUBSUB_PARTITION_OPTION).as<int>();
+        if (topic_partition < 0) {
+            wlog("topic partition not specified => use 0 instead.");
+            topic_partition = 0;
+        }
     }
 
-    std::string format_str = options.at(PUBSUB_FORMAT_OPTION).as<std::string>();
-    if (format_str.empty()) {
-        wlog("format not specified => use 'json' instead.");
-        format_str = "json";
+    if (options.count(PUBSUB_CID_OPTION)) {
+        cid_str = options.at(PUBSUB_CID_OPTION).as<std::string>();
+        if (cid_str.empty()) {
+            wlog("cid not specified => use 'EosNode' instead.");
+            cid_str = "EosNode";
+        }
     }
 
-   ilog("Publish to ${u} with topic=${t} cid=${c} format=${f}", ("u", uri_str)("t", topic_str)("c", cid_str)("f", format_str));
+    if (options.count(PUBSUB_FORMAT_OPTION)) {
+        format_str = options.at(PUBSUB_FORMAT_OPTION).as<std::string>();
+        if (format_str.empty()) {
+            wlog("format not specified => use 'json' instead.");
+            format_str = "json";
+        }
+    }
 
-    auto be = std::make_shared<backend>(uri_str, topic_str, cid_str, format_str);
+    ilog("Publish to ${u} with topic=${t} partition=${p} cid=${c} format=${f}", ("u", uri_str)("t", topic_str)("p", topic_partition)("c", cid_str)("f", format_str));
+
+    auto be = std::make_shared<backend>(uri_str, topic_str, topic_partition, cid_str, format_str);
 
     if (options.at(RESYNC_OPTION).as<bool>() ||
          options.at(REPLAY_OPTION).as<bool>())
@@ -130,7 +153,7 @@ void pubsub_plugin::on_message(const chain::transaction_trace_ptr& trace) {
 
     // idump((fc::json::to_pretty_string(*result))); 
     if (result->actions.size() > 0) {
-        m_applied_action_consumer->push(result);
+    m_applied_action_consumer->push(result);
     }
 }
 
